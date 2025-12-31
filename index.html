@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Trader Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- PROFESSIONAL DARK THEME --- */
+        :root { --bg: #0a0a0a; --card: #161616; --green: #00E676; --red: #FF3D00; --text: #E0E0E0; --accent: #2979FF; }
+        body { margin: 0; font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 70px; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        /* HEADER & TICKER */
+        header { background: #111; padding: 12px; text-align: center; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 100; }
+        header h2 { margin: 0; color: var(--green); font-size: 18px; letter-spacing: 1px; text-transform: uppercase; font-weight: 800; }
+        
+        .ticker-wrap { background: #050505; overflow: hidden; height: 28px; border-bottom: 1px solid #222; display: flex; align-items: center; }
+        .ticker { display: flex; animation: ticker 25s infinite linear; white-space: nowrap; }
+        .ticker-item { padding: 0 20px; font-size: 11px; font-weight: bold; }
+        .up { color: var(--green); } .down { color: var(--red); }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        /* TABS & NAVIGATION */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #222; z-index: 999; backdrop-filter: blur(10px); }
+        .nav-item { color: #666; text-align: center; font-size: 10px; cursor: pointer; flex: 1; padding: 5px; }
+        .nav-item i { font-size: 20px; margin-bottom: 4px; display: block; }
+        .nav-item.active { color: var(--green); }
+        .nav-item.active i { transform: translateY(-2px); transition: 0.3s; }
+
+        /* SECTIONS */
+        .section { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* COURSE FILTERS */
+        .filter-box { display: flex; background: #222; border-radius: 8px; padding: 4px; margin-bottom: 15px; }
+        .filter-btn { flex: 1; border: none; background: transparent; color: #888; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .filter-btn.active { background: var(--accent); color: white; shadow: 0 2px 10px rgba(41, 121, 255, 0.4); }
+
+        /* ADS & DISCLAIMER */
+        .ad-banner { height: 50px; background: #1a1a1a; margin: 15px 0; border: 1px dashed #444; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #555; border-radius: 6px; }
+        .disclaimer-box { background: rgba(255, 145, 0, 0.1); color: #ff9100; padding: 12px; font-size: 11px; border-radius: 6px; margin-bottom: 15px; border-left: 3px solid #ff9100; line-height: 1.4; }
+
+        /* CONTENT CARDS */
+        .card { background: var(--card); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #222; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .card h3 { margin: 0 0 8px 0; font-size: 15px; color: #fff; line-height: 1.3; }
+        .card p { font-size: 13px; color: #b0b0b0; line-height: 1.5; margin: 0; }
+        .date { font-size: 10px; color: #555; margin-top: 8px; display: block; text-align: right; }
+        
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; margin-top: 10px; background: #000; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* TOOLS GRID */
+        .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .tool-card { background: var(--card); padding: 20px; border-radius: 10px; text-align: center; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
+        .tool-card:active { transform: scale(0.98); background: #222; }
+        .tool-card i { font-size: 28px; color: var(--green); margin-bottom: 10px; }
+
+        /* MENU ITEMS */
+        .menu-item { padding: 15px; border-bottom: 1px solid #222; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .menu-item:last-child { border: none; }
+        .menu-item i { margin-right: 10px; width: 20px; text-align: center; color: var(--accent); }
+
+        /* MODALS (Calculators & Legal) */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .modal-body { color: #ccc; font-size: 13px; line-height: 1.6; }
+        
+        input { width: 100%; background: #1a1a1a; border: 1px solid #333; color: white; padding: 14px; margin-bottom: 12px; border-radius: 6px; box-sizing: border-box; font-size: 16px; outline: none; }
+        input:focus { border-color: var(--green); }
+        .btn-action { width: 100%; background: var(--green); color: black; padding: 14px; border: none; font-weight: bold; border-radius: 6px; font-size: 16px; margin-top: 10px; }
+        .result-box { margin-top: 20px; padding: 15px; background: #222; border-radius: 6px; text-align: center; font-size: 18px; font-weight: bold; color: var(--green); border: 1px solid #333; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>smart trading app</h2>
+    </header>
+
+    <!-- MARKET TICKER -->
+    <div class="ticker-wrap">
+        <div class="ticker">
+            <span class="ticker-item">NIFTY 50 <span class="up">22,510 (+0.4%)</span></span>
+            <span class="ticker-item">BANK NIFTY <span class="down">47,100 (-0.1%)</span></span>
+            <span class="ticker-item">SENSEX <span class="up">73,200 (+0.3%)</span></span>
+            <span class="ticker-item">USD/INR <span class="up">83.10 (+0.05%)</span></span>
+            <span class="ticker-item">CRUDE OIL <span class="down">6,200 (-1.2%)</span></span>
+        </div>
+    </div>
+
+    <!-- 1. HOME (NEWS) -->
+    <div id="home" class="section active">
+        <div class="disclaimer-box"><i class="fas fa-shield-alt"></i> <b>Risk Warning:</b> Trading involves significant risk. This app is for educational purposes only. We are not SEBI registered advisors.</div>
+        <div class="ad-banner">AdMob Banner Ad</div>
+        
+        <h3 style="color:var(--text); margin-bottom:15px; border-left:4px solid var(--green); padding-left:10px;">Market Insights</h3>
+        <div id="news-list">
+            <p style="text-align:center; color:#555; padding:20px;">Fetching latest updates...</p>
+        </div>
+    </div>
+
+    <!-- 2. COURSE (VIDEO) -->
+    <div id="course" class="section">
+        <div class="filter-box">
+            <button class="filter-btn active" onclick="filterVideo('beginner', this)">Beginner</button>
+            <button class="filter-btn" onclick="filterVideo('advanced', this)">Advanced</button>
+        </div>
+
+        <div id="video-list">
+            <p style="text-align:center; color:#555;">Loading Videos...</p>
+        </div>
+        <div class="ad-banner">AdMob Banner Ad</div>
+    </div>
+
+    <!-- 3. TOOLS -->
+    <div id="tools" class="section">
+        <h3 style="margin-bottom:15px;">Smart Calculators</h3>
+        <div class="tools-grid">
+            <div class="tool-card" onclick="openModal('pnl')"><i class="fas fa-calculator"></i><br>P&L Calc</div>
+            <div class="tool-card" onclick="openModal('pos')"><i class="fas fa-chart-pie"></i><br>Position Size</div>
+            <div class="tool-card" onclick="openModal('sip')"><i class="fas fa-coins"></i><br>SIP Planner</div>
+            <div class="tool-card" onclick="openModal('avg')"><i class="fas fa-balance-scale"></i><br>Stock Avg</div>
+        </div>
+<div class="ad-banner">AdMob Banner Ad</div>
+    </div>
+
+    <!-- 4. MENU (LEGAL) -->
+    <div id="menu" class="section">
+        <div class="card">
+            <div class="menu-item" onclick="openModal('privacy')"><i class="fas fa-user-lock"></i> Privacy Policy <i class="fas fa-chevron-right" style="color:#444;"></i></div>
+            <div class="menu-item" onclick="openModal('terms')"><i class="fas fa-file-contract"></i> Terms & Conditions <i class="fas fa-chevron-right" style="color:#444;"></i></div>
+            <div class="menu-item" onclick="openModal('disclaimer')"><i class="fas fa-exclamation-circle"></i> Full Disclaimer <i class="fas fa-chevron-right" style="color:#444;"></i></div>
+            <div class="menu-item"><i class="fas fa-star"></i> Rate Us on Play Store</div>
+        </div>
+        <div style="text-align:center; color:#444; font-size:10px; margin-top:20px;">Version 1.0.0</div>
+    </div>
+
+    <!-- CALCULATOR MODALS -->
+    <div id="pnl" class="modal">
+        <div class="modal-header"><h3>Profit & Loss</h3> <i class="fas fa-times" onclick="closeModal('pnl')"></i></div>
+        <input type="number" id="pnl-buy" placeholder="Buy Price">
+        <input type="number" id="pnl-sell" placeholder="Sell Price">
+        <input type="number" id="pnl-qty" placeholder="Quantity">
+        <button class="btn-action" onclick="calcPnL()">Calculate</button>
+        <div id="pnl-res" class="result-box">Result: ₹0</div>
+    </div>
+
+    <div id="pos" class="modal">
+        <div class="modal-header"><h3>Position Sizing</h3> <i class="fas fa-times" onclick="closeModal('pos')"></i></div>
+        <input type="number" id="pos-cap" placeholder="Capital (₹)">
+        <input type="number" id="pos-risk" placeholder="Risk % per Trade">
+        <input type="number" id="pos-sl" placeholder="Stop Loss (Points)">
+        <button class="btn-action" onclick="calcPos()">Calculate Qty</button>
+        <div id="pos-res" class="result-box">Qty: 0</div>
+    </div>
+
+    <div id="sip" class="modal">
+        <div class="modal-header"><h3>SIP Calculator</h3> <i class="fas fa-times" onclick="closeModal('sip')"></i></div>
+        <input type="number" id="sip-amt" placeholder="Monthly Investment">
+        <input type="number" id="sip-rate" placeholder="Expected Return (%)">
+        <input type="number" id="sip-year" placeholder="Years">
+        <button class="btn-action" onclick="calcSIP()">Calculate Value</button>
+        <div id="sip-res" class="result-box">Value: ₹0</div>
+    </div>
+
+    <div id="avg" class="modal">
+        <div class="modal-header"><h3>Stock Average</h3> <i class="fas fa-times" onclick="closeModal('avg')"></i></div>
+        <input type="number" id="avg-p1" placeholder="First Price">
+        <input type="number" id="avg-q1" placeholder="First Qty">
+        <input type="number" id="avg-p2" placeholder="Second Price">
+        <input type="number" id="avg-q2" placeholder="Second Qty">
+        <button class="btn-action" onclick="calcAvg()">Calculate Avg</button>
+        <div id="avg-res" class="result-box">Avg: ₹0</div>
+    </div>
+
+    <!-- LEGAL MODALS (Hardcoded for Safety) -->
+    <div id="privacy" class="modal">
+        <div class="modal-header"><h3>Privacy Policy</h3> <i class="fas fa-times" onclick="closeModal('privacy')"></i></div>
+        <div class="modal-body">
+            <p><b>Last Updated: 2025</b></p>
+            <p>We respect your privacy. This app does not collect personal data like phone numbers or location without consent. We use AdMob for advertising which may use cookies.</p>
+            <p>1. <b>Data Collection:</b> We use Firebase to store app content. No user data is stored on our servers.</p>
+            <p>2. <b>Ads:</b> Google AdMob is used to serve ads.</p>
+<p>3.Third-party services such as Google AdMob and Firebase may collect information as per their own privacy policies.<p>
+<p> 4. Children's Information:
+This app is not intended for children under the age of 13.<p>
+<p> 5. Changes to This Privacy Policy:
+We may update this Privacy Policy from time to time. Changes will be reflected on this page.<p>
+
+Contact Us:
+Email: vr7847922@gmail.com
+        </div>
+    </div>
+    
+    <div id="terms" class="modal">
+        <div class="modal-header"><h3>Terms of Use</h3> <i class="fas fa-times" onclick="closeModal('terms')"></i></div>
+        <div class="modal-body">
+            <p>By using this app, you agree that the information provided is for educational purposes only.</p>
+            <p>We are not responsible for any financial losses incurred based on the tools or information in this app.</p>
+        </div>
+    </div>
+
+    <div id="disclaimer" class="modal">
+        <div class="modal-header"><h3>Disclaimer</h3> <i class="fas fa-times" onclick="closeModal('disclaimer')"></i></div>
+        <div class="modal-body">
+            <p style="color:#ff9100"><b>IMPORTANT:</b></p>
+            <p>Trading in financial markets involves a high degree of risk. 90% of retail traders lose money.</p>
+            <p>The content in this app is not investment advice. Please consult a SEBI registered financial advisor before investing.</p>
+<p>This app does not provide any buy/sell signals, tips, or guaranteed profit strategies.
+
+We are not associated with any stock broker, exchange, or trading platform.
+
+Market data or information shown in the app may be delayed and is for educational purposes only.<p>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i>Home</div>
+        <div class="nav-item" onclick="switchTab('course', this)"><i class="fas fa-graduation-cap"></i>Learn</div>
+        <div class="nav-item" onclick="switchTab('tools', this)"><i class="fas fa-calculator"></i>Tools</div>
+        <div class="nav-item" onclick="switchTab('menu', this)"><i class="fas fa-bars"></i>Menu</div>
+    </div>
+
+    <!-- LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        // 🔴🔴 FIREBASE CONFIG HERE 🔴🔴
+        const firebaseConfig = {
+  apiKey: "AIzaSyDid938gjPC-gbDLBQQk1T0jBwYyRJ8nY8",
+  authDomain: "guru-trading.firebaseapp.com",
+  databaseURL: "https://guru-trading-default-rtdb.firebaseio.com",
+  projectId: "guru-trading",
+  storageBucket: "guru-trading.firebasestorage.app",
+  messagingSenderId: "329577116789",
+  appId: "1:329577116789:web:a7ed8bc0c82413053bb43c"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // GLOBAL VARIABLES
+        window.allVideos = [];
+        window.currentFilter = 'beginner';
+
+        // FETCH DATA
+        const q = query(collection(db, "content"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const newsDiv = document.getElementById('news-list');
+            window.allVideos = [];
+            newsDiv.innerHTML = "";
+
+            if(snapshot.empty) newsDiv.innerHTML = "<p>No updates.</p>";
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                
+                if(data.type === 'news') {
+                    newsDiv.innerHTML += `
+                        <div class="card">
+                            <h3>${data.title}</h3>
+                            <p>${data.body}</p>
+                            <span class="date">${new Date(data.timestamp?.toDate()).toLocaleDateString()}</span>
+                        </div>`;
+                } else if (data.type === 'video') {
+                    window.allVideos.push(data);
+                }
+            });
+            renderVideos(); // Initial Render
+        });
+
+        // RENDER VIDEOS BASED ON FILTER
+        window.renderVideos = function() {
+            const vidDiv = document.getElementById('video-list');
+            vidDiv.innerHTML = "";
+            
+            // Filter Data
+            const filtered = window.allVideos.filter(v => v.category === window.currentFilter);
+            
+            if(filtered.length === 0) {
+                vidDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>No videos in this category yet.</p>";
+                return;
+            }
+
+            filtered.forEach(data => {
+                let vidId = data.body.split('v=')[1] || data.body.split('/').pop();
+                if(vidId.includes('&')) vidId = vidId.split('&')[0]; // clean url
+
+                vidDiv.innerHTML += `
+                    <div class="card">
+                        <h3>${data.title}</h3>
+                        <div class="video-container">
+                            <iframe src="https://www.youtube.com/embed/${vidId}" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // FILTER BUTTON CLICK
+        window.filterVideo = function(cat, btn) {
+            window.currentFilter = cat;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderVideos();
+        }
+    </script>
+
+    <script>
+        // NAVIGATION & MODALS
+        function switchTab(id, btn) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'block'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // CALCULATOR LOGIC
+        function calcPnL() {
+            let b = Number(document.getElementById('pnl-buy').value);
+            let s = Number(document.getElementById('pnl-sell').value);
+            let q = Number(document.getElementById('pnl-qty').value);
+            let r = (s-b)*q;
+            let el = document.getElementById('pnl-res');
+            el.innerHTML = r >= 0 ? `Profit: ₹${r.toFixed(2)}` : `Loss: ₹${r.toFixed(2)}`;
+            el.style.color = r >= 0 ? '#00E676' : '#FF3D00';
+        }
+        function calcPos() {
+            let c = Number(document.getElementById('pos-cap').value);
+            let r = Number(document.getElementById('pos-risk').value);
+            let s = Number(document.getElementById('pos-sl').value);
+            if(s==0) return;
+            let qty = Math.floor(((c * r)/100) / s);
+            document.getElementById('pos-res').innerHTML = `Quantity: ${qty}`;
+        }
+        function calcSIP() {
+            let p = Number(document.getElementById('sip-amt').value);
+            let r = Number(document.getElementById('sip-rate').value)/1200;
+            let t = Number(document.getElementById('sip-year').value)*12;
+            let val = p * ( (Math.pow(1+r, t) - 1) / r ) * (1+r);
+            document.getElementById('sip-res').innerHTML = `Total: ₹${val.toFixed(0)}`;
+        }
+        function calcAvg() {
+            let p1=Number(document.getElementById('avg-p1').value), q1=Number(document.getElementById('avg-q1').value);
+            let p2=Number(document.getElementById('avg-p2').value), q2=Number(document.getElementById('avg-q2').value);
+            let avg = ((p1*q1)+(p2*q2))/(q1+q2);
+            document.getElementById('avg-res').innerHTML = `Avg: ₹${avg.toFixed(2)}`;
+        }
+    </script>
+</body>
+</html>
